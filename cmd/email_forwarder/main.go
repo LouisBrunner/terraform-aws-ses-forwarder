@@ -14,7 +14,7 @@ func main() {
 	if err != nil {
 		panic("could not load config: " + err.Error())
 	}
-	lambda.Start(func(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-		return logic.Handler(sess, config, request)
+	lambda.Start(func(event events.SNSEvent) error {
+		return logic.Handler(sess, config, event)
 	})
 }

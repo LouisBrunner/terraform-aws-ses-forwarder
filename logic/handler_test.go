@@ -21,22 +21,18 @@ func TestHandler_Fails_NoBody(t *testing.T) {
 	}
 	log.SetOutput(w)
 
-	_, err = Handler(
+	err = Handler(
 		setupSession(), setupConfig(),
-		events.APIGatewayProxyRequest{
-			RequestContext: events.APIGatewayProxyRequestContext{
-				RequestID: "123",
-			},
-		},
+		events.SNSEvent{},
 	)
-	expectedError := "missing body"
+	expectedError := "no record"
 	assert.EqualError(t, err, expectedError)
 
 	content, err := collect()
 	if !assert.NoError(t, err) {
 		return
 	}
-	assert.Regexp(t, "123: error: "+expectedError+"\n", string(content))
+	assert.Regexp(t, "error: "+expectedError+"\n", string(content))
 }
 
 func TestHandler_Fails_Parsing(t *testing.T) {
@@ -46,29 +42,33 @@ func TestHandler_Fails_Parsing(t *testing.T) {
 	}
 	log.SetOutput(w)
 
-	_, err = Handler(
+	err = Handler(
 		setupSession(), setupConfig(),
-		events.APIGatewayProxyRequest{
-			RequestContext: events.APIGatewayProxyRequestContext{
-				RequestID: "123",
+		events.SNSEvent{
+			Records: []events.SNSEventRecord{
+				{
+					SNS: events.SNSEntity{
+						MessageID: "123",
+						Message:   "{,}",
+					},
+				},
 			},
-			Body: "{,}",
 		},
 	)
-	expectedError := "invalid character ',' looking for beginning of object key string"
+	expectedError := "123: invalid character ',' looking for beginning of object key string"
 	assert.EqualError(t, err, expectedError)
 
 	content, err := collect()
 	if !assert.NoError(t, err) {
 		return
 	}
-	assert.Regexp(t, "123: error: "+expectedError+"\n", string(content))
+	assert.Regexp(t, "error: "+expectedError+"\n", string(content))
 }
 
 const eventValid = `{
   "content":"123",
   "receipt":{"spamVerdict":{"status":"PASS"},"virusVerdict":{"status":"PASS"}},
-  "mail":{"headers":{"To":"hello@moto.com"}}
+  "mail":{"headers":[{"name":"To","value":"hello@moto.com"}]}
 }`
 
 func TestHandler_Fails_Mapping(t *testing.T) {
@@ -78,21 +78,25 @@ func TestHandler_Fails_Mapping(t *testing.T) {
 	}
 	log.SetOutput(w)
 
-	_, err = Handler(
+	err = Handler(
 		setupSession(), setupConfig(),
-		events.APIGatewayProxyRequest{
-			RequestContext: events.APIGatewayProxyRequestContext{
-				RequestID: "123",
+		events.SNSEvent{
+			Records: []events.SNSEventRecord{
+				{
+					SNS: events.SNSEntity{
+						MessageID: "456",
+						Message:   eventValid,
+					},
+				},
 			},
-			Body: eventValid,
 		},
 	)
-	expectedError := "no match found for `hello@moto.com`"
+	expectedError := "456: no match found for `hello@moto.com`"
 	assert.EqualError(t, err, expectedError)
 
 	content, err := collect()
 	if !assert.NoError(t, err) {
 		return
 	}
-	assert.Regexp(t, "123: error: "+expectedError+"\n", string(content))
+	assert.Regexp(t, "error: "+expectedError+"\n", string(content))
 }

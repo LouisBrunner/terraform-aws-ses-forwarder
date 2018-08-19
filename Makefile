@@ -1,6 +1,7 @@
 BINARY = email_forwarder
 TARGET = ./cmd/$(BINARY)
 LINT_PACKAGES = $(shell go list -f '{{.Dir}}' ./...)
+GOFLAGS ?=
 COVERPROFILES = *.coverprofile
 COVERPROFILE = goverprofile
 CWD = $(shell pwd)
@@ -14,7 +15,7 @@ PACKAGES = github.com/modocache/gover\
 all: build
 
 build:
-	go build $(TARGET)
+	go build $(GOFLAGS) $(TARGET)
 
 lint:
 	go vet ./...
@@ -53,4 +54,9 @@ coveralls: $(COVERPROFILE)
 
 ci: test coveralls lint
 
+
 .PHONY: ci_prepare coveralls ci
+
+# Extra
+lambda:
+	GOOS=linux GOFLAGS='-ldflags="-s -w"' make build && zip $(BINARY).zip $(BINARY) ef.json

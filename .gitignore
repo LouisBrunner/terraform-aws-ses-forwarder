@@ -1,5 +1,6 @@
 vendor
-/email_forwarder
+/email_forwarder*
 *.coverprofile
 goverprofile
 cover.html
+ef.json
