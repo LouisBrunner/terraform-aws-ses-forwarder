@@ -93,7 +93,7 @@ jobs:
 
       - name: Build using ko
         run: |
-          export DOCKER_IMAGE_PREFIX=ghcr.io/LouisBrunner
+          export DOCKER_IMAGE_PREFIX=ghcr.io/louisbrunner
           export DOCKER_TAGS=${{ needs.metadata.outputs.image_tags }}
           export DOCKER_PLATFORM=linux/amd64
           make TARGET=aws-ses-forwarder build-push-docker
