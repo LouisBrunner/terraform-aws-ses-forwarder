@@ -66,7 +66,7 @@ jobs:
     outputs:
       image_tags: ${{ steps.parse-tag.outputs.tag }}
     steps:
-      - run: aica-technology/.github/.github/actions/docker-tag-from-git@v0.10.2
+      - uses: aica-technology/.github/.github/actions/docker-tag-from-git@v0.10.2
         id: parse-tag
 
   build:
