@@ -70,7 +70,7 @@ jobs:
         id: parse-tag
 
   build:
-    needs: [check-rebuild, metadata, vet, test, list]
+    needs: [check-rebuild, metadata, vet, test]
     runs-on: ubuntu-latest
     name: Build and publish
     steps:
