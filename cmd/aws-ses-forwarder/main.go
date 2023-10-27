@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/LouisBrunner/aws-ses-forwarder/logic"
+	"github.com/LouisBrunner/aws-ses-forwarder/pkg/logic"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"

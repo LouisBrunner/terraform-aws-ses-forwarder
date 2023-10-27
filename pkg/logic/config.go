@@ -3,7 +3,7 @@ package logic
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"regexp"
 )
 
@@ -26,7 +26,7 @@ type configRaw struct {
 
 // LoadConfig reads the configuration of the app from the current directory
 func LoadConfig(path string) (*Config, error) {
-	content, err := ioutil.ReadFile(path)
+	content, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}

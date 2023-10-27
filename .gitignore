@@ -1,6 +1,6 @@
-vendor
-/email_forwarder*
-*.coverprofile
-goverprofile
-cover.html
-ef.json
+/email-forwarder
+report.xml
+cobertura.xml
+coverage.*
+mocks
+*.gen.go*

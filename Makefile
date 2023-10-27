@@ -1,62 +1,79 @@
-BINARY = email_forwarder
-TARGET = ./cmd/$(BINARY)
-LINT_PACKAGES = $(shell go list -f '{{.Dir}}' ./...)
-GOFLAGS ?=
-COVERPROFILES = *.coverprofile
-COVERPROFILE = goverprofile
-CWD = $(shell pwd)
+all: test vet build
+.PHONY: all
 
-PACKAGES = github.com/modocache/gover\
-	github.com/mattn/goveralls\
-	github.com/golang/lint/golint\
-	github.com/golang/dep/cmd/dep
+download: go.sum
+	go mod download
+.PHONY: download
 
-# General
-all: build
+mod-tidy:
+	go mod tidy
+.PHONY: mod-tidy
 
-build:
-	go build $(GOFLAGS) $(TARGET)
+generate: download
+	# When not running tests or vetting, we don't want to generate mocks (vektra/mockery) as it's quite slow
+	go generate -run='//go:generate go run github.com/([^v]|v[^e]|ve[^k]|vek[^t])' -x ./...
+ifeq (, $(findstring test,$(MAKECMDGOALS))$(findstring vet,$(MAKECMDGOALS)))
+else
+	go generate -x ./...
+endif
+.PHONY: generate
 
-lint:
+vet: download generate
+	gofmt -d -e -s .
 	go vet ./...
-	golint $(LINT_PACKAGES)
-	gofmt -d -s $(LINT_PACKAGES)
+	go run honnef.co/go/tools/cmd/staticcheck ./...
+.PHONY: vet
 
-setup:
-	go get -u $(PACKAGES)
+test: download generate
+	go test -v ./...
+.PHONY: test
 
-clean:
-	rm -f $(COVERPROFILE) $(COVERPROFILES) $(BINARY)
+TEST_OUT_FILE ?= report.xml
+COV_OUT_FILE ?= coverage.out
 
-.PHONY: all build lint setup clean
+test-ci: download generate
+	go run gotest.tools/gotestsum --junitfile $(TEST_OUT_FILE) -- -coverprofile=$(COV_OUT_FILE) -v ./...
+.PHONY: test-ci
 
-# Testing
-test:
-	go list -f '{{if len .TestGoFiles}}"go test -coverprofile='$(CWD)'/{{.Name}}.coverprofile {{.ImportPath}}"{{end}}' ./... | xargs -L 1 sh -c
+coverage-ci:
+	go run github.com/mattn/goveralls -coverprofile=$(COV_OUT_FILE) -service=github
+.PHONY: coverage-ci
 
-$(COVERPROFILES): test
+TARGET ?= missing
 
-$(COVERPROFILE): $(COVERPROFILES)
-	gover . $@
+build: download generate
+	go build ./cmd/$(TARGET)
+.PHONY: build
 
-cover: $(COVERPROFILE)
-	go tool cover -html=$< -o cover.html
-	gocov convert $< | gocov report
+## Docker
+DOCKER_IMAGE_PREFIX ?= local
+DOCKER_TAGS ?= latest
+DOCKER_PLATFORM ?= linux/$(shell uname -m)
+DOCKER_IMAGE ?= $(DOCKER_IMAGE_PREFIX)/$(TARGET)
+DOCKER_IMAGE_TAG ?= $(DOCKER_IMAGE):$(DOCKER_TAGS)
 
-.PHONY: test cover
+DOCKER_PLATFORM_FLAG =
+ifneq ($(DOCKER_PLATFORM),)
+	DOCKER_PLATFORM_FLAG = --platform $(DOCKER_PLATFORM)
+endif
 
-# CI
-ci_prepare: setup
-	dep ensure
+KO_ARGS ?= --local
 
-coveralls: $(COVERPROFILE)
-	goveralls -coverprofile=$< -service=travis-ci
+build-docker:
+	KO_DOCKER_REPO=$(DOCKER_IMAGE) ko build --sbom=none --bare --tags $(DOCKER_TAGS) $(DOCKER_PLATFORM_FLAG) $(KO_ARGS) ./cmd/$(TARGET)
+.PHONY: build-docker
 
-ci: test coveralls lint
+build-push-docker:
+	make build-docker KO_ARGS="--push"
+.PHONY: build-push-docker
 
+ARGS ?=
+DOCKER_ARGS ?=
 
-.PHONY: ci_prepare coveralls ci
+run: download generate
+	go run ./cmd/$(TARGET) $(ARGS)
+.PHONY: run
 
-# Extra
-lambda:
-	GOOS=linux GOFLAGS='-ldflags="-s -w"' make build && zip $(BINARY).zip $(BINARY) ef.json
+run-docker: build-docker
+	docker run -it --rm $(DOCKER_ARGS) $(DOCKER_IMAGE_TAG) $(ARGS)
+.PHONY: run-docker

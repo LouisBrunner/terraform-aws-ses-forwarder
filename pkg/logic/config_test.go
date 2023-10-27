@@ -1,7 +1,6 @@
 package logic
 
 import (
-	"io/ioutil"
 	"os"
 	"regexp"
 	"testing"
@@ -41,7 +40,10 @@ func TestConfigMap_Fails_NotFound(t *testing.T) {
 }
 
 func setupFile(content string) (string, func()) {
-	file, _ := ioutil.TempFile("", "ef")
+	file, err := os.CreateTemp("", "ef")
+	if err != nil {
+		panic(err)
+	}
 	file.WriteString(content)
 	filename := file.Name()
 	file.Close()

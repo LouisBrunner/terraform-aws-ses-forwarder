@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/LouisBrunner/aws-ses-forwarder/mailer"
+	"github.com/LouisBrunner/aws-ses-forwarder/pkg/mailer"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws/client"
