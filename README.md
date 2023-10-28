@@ -11,8 +11,9 @@ resource "aws_route53_zone" "domain" {
   name = "example.com"
 }
 
-module "email" {
-  source = "LouisBrunner/terraform-aws-ses-forwarder"
+module "ses-forwarder" {
+  source = "LouisBrunner/ses-forwarder/aws"
+  version = "0.1.0"
 
   prefix  = "forwarder"
   zone_id = aws_route53_zone.domain.zone_id
