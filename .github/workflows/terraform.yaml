@@ -13,12 +13,6 @@ jobs:
         with:
           terraform_version: 1.5.2
 
-      - uses: autero1/action-terragrunt@v1.3.2
-        with:
-          terragrunt_version: 0.48.0
-
       - name: Check formatting
         run: |
-          cd terraform
           terraform fmt -recursive -check -diff
-          terragrunt hclfmt --terragrunt-diff
