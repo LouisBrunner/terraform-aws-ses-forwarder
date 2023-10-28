@@ -6,29 +6,15 @@ import (
 	"errors"
 	"regexp"
 
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/service/ses"
 )
 
 const passVerdict = "PASS"
 
-type verdict struct {
-	Status string `json:"status"`
-}
-
-type header struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
-}
-
 type raw struct {
-	Mail struct {
-		Headers []header `json:"headers"`
-	} `json:"mail"`
-	Receipt struct {
-		SpamVerdict  verdict `json:"spamVerdict"`
-		VirusVerdict verdict `json:"virusVerdict"`
-	}
+	events.SimpleEmailService
 	Content string `json:"content"`
 }
 
@@ -39,7 +25,7 @@ type Event struct {
 	email []byte
 }
 
-func lookupHeader(headers []header, name string) (string, bool) {
+func lookupHeader(headers []events.SimpleEmailHeader, name string) (string, bool) {
 	for _, header := range headers {
 		if header.Name == name {
 			return header.Value, true

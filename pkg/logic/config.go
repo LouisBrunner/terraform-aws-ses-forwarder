@@ -3,7 +3,6 @@ package logic
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"regexp"
 )
 
@@ -17,42 +16,36 @@ type Config struct {
 	translations []configEntry
 }
 
-type configRaw struct {
-	Translations []struct {
-		Regex   string `json:"regex"`
-		Replace string `json:"replace"`
-	} `json:"translations"`
+type config struct {
+	Emails map[string][]string `json:"emails"`
 }
 
 // LoadConfig reads the configuration of the app from the current directory
-func LoadConfig(path string) (*Config, error) {
-	content, err := os.ReadFile(path)
+func LoadConfig(content string) (*Config, error) {
+	raw := config{}
+	err := json.Unmarshal([]byte(content), &raw)
 	if err != nil {
 		return nil, err
 	}
 
-	raw := configRaw{}
-	err = json.Unmarshal(content, &raw)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(raw.Translations) < 1 {
-		return nil, fmt.Errorf("%s: no translation found", path)
+	if len(raw.Emails) < 1 {
+		return nil, fmt.Errorf("no translation found")
 	}
 
 	conf := Config{
-		translations: make([]configEntry, len(raw.Translations)),
+		translations: make([]configEntry, 0, len(raw.Emails)),
 	}
-	for i, entry := range raw.Translations {
-		regex, err := regexp.Compile(entry.Regex)
+	for emailRegex, aliases := range raw.Emails {
+		regex, err := regexp.Compile(emailRegex)
 		if err != nil {
 			return nil, err
 		}
 
-		conf.translations[i] = configEntry{
-			regex:   regex,
-			replace: entry.Replace,
+		for _, alias := range aliases {
+			conf.translations = append(conf.translations, configEntry{
+				regex:   regex,
+				replace: alias,
+			})
 		}
 	}
 

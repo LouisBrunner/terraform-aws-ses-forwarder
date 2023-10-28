@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/LouisBrunner/aws-ses-forwarder/pkg/logic"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -10,7 +12,11 @@ import (
 
 func main() {
 	sess := session.Must(session.NewSession())
-	config, err := logic.LoadConfig("./ef.json")
+	rawConfig := os.Getenv("CONFIG")
+	if rawConfig == "" {
+		panic("CONFIG environment variable is required")
+	}
+	config, err := logic.LoadConfig(rawConfig)
 	if err != nil {
 		panic("could not load config: " + err.Error())
 	}

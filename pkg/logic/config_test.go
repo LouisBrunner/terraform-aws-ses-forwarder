@@ -1,7 +1,6 @@
 package logic
 
 import (
-	"os"
 	"regexp"
 	"testing"
 
@@ -39,27 +38,12 @@ func TestConfigMap_Fails_NotFound(t *testing.T) {
 	assert.EqualError(t, err, "no match found for `@example.com`")
 }
 
-func setupFile(content string) (string, func()) {
-	file, err := os.CreateTemp("", "ef")
-	if err != nil {
-		panic(err)
-	}
-	file.WriteString(content)
-	filename := file.Name()
-	file.Close()
-	return filename, func() {
-		os.Remove(filename)
-	}
-}
-
 func TestLoadConfig_Works(t *testing.T) {
-	file, done := setupFile(`{
+	conf, err := LoadConfig(`{
   "translations": [
     {"regex":".*@example.com","replace":"123"}
   ]
 }`)
-	defer done()
-	conf, err := LoadConfig(file)
 	if assert.NoError(t, err) {
 		to, err := conf.Map("abc@example.com")
 		if assert.NoError(t, err) {
@@ -70,37 +54,31 @@ func TestLoadConfig_Works(t *testing.T) {
 
 func TestLoadConfig_Fails_NoFile(t *testing.T) {
 	_, err := LoadConfig("123")
-	assert.EqualError(t, err, "open 123: no such file or directory")
+	assert.EqualError(t, err, "json: cannot unmarshal number into Go value of type logic.config")
 }
 
 func TestLoadConfig_Fails_Invalid(t *testing.T) {
-	file, done := setupFile(`{
+	_, err := LoadConfig(`{
   "translations": [
     {"regex":".*@example.com","replace":"123"},
   ]
 }`)
-	defer done()
-	_, err := LoadConfig(file)
 	assert.EqualError(t, err, "invalid character ']' looking for beginning of value")
 }
 
 func TestLoadConfig_Fails_Empty(t *testing.T) {
-	file, done := setupFile(`{
+	_, err := LoadConfig(`{
   "translations": [
   ]
 }`)
-	defer done()
-	_, err := LoadConfig(file)
-	assert.EqualError(t, err, file+": no translation found")
+	assert.EqualError(t, err, "no translation found")
 }
 
 func TestLoadConfig_Fails_InvalidRegex(t *testing.T) {
-	file, done := setupFile(`{
+	_, err := LoadConfig(`{
   "translations": [
     {"regex":"[","replace":"123"}
   ]
 }`)
-	defer done()
-	_, err := LoadConfig(file)
 	assert.EqualError(t, err, "error parsing regexp: missing closing ]: `[`")
 }
