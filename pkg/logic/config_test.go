@@ -40,9 +40,7 @@ func TestConfigMap_Fails_NotFound(t *testing.T) {
 
 func TestLoadConfig_Works(t *testing.T) {
 	conf, err := LoadConfig(`{
-  "translations": [
-    {"regex":".*@example.com","replace":"123"}
-  ]
+  "emails": {".*@example.com":["123"]}
 }`)
 	if assert.NoError(t, err) {
 		to, err := conf.Map("abc@example.com")
@@ -59,26 +57,21 @@ func TestLoadConfig_Fails_NoFile(t *testing.T) {
 
 func TestLoadConfig_Fails_Invalid(t *testing.T) {
 	_, err := LoadConfig(`{
-  "translations": [
-    {"regex":".*@example.com","replace":"123"},
-  ]
+  "emails": {".*@example.com":["123"]},
 }`)
-	assert.EqualError(t, err, "invalid character ']' looking for beginning of value")
+	assert.EqualError(t, err, "invalid character '}' looking for beginning of object key string")
 }
 
 func TestLoadConfig_Fails_Empty(t *testing.T) {
 	_, err := LoadConfig(`{
-  "translations": [
-  ]
+  "emails": {}
 }`)
 	assert.EqualError(t, err, "no translation found")
 }
 
 func TestLoadConfig_Fails_InvalidRegex(t *testing.T) {
 	_, err := LoadConfig(`{
-  "translations": [
-    {"regex":"[","replace":"123"}
-  ]
+  "emails": {"[":["123"]}
 }`)
 	assert.EqualError(t, err, "error parsing regexp: missing closing ]: `[`")
 }
