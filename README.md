@@ -6,7 +6,22 @@ AWS Lambda (written in Go) to forward emails using AWS SES.
 
 ### Terraform module
 
-TODO:
+```hcl
+resource "aws_route53_zone" "domain" {
+  name = "example.com"
+}
+
+module "email" {
+  source = "LouisBrunner/terraform-aws-ses-forwarder"
+
+  prefix  = "forwarder"
+  zone_id = aws_route53_zone.domain.zone_id
+
+  emails = {
+    "camille" = ["camille@gmail.com"]
+  }
+}
+```
 
 ### Docker image
 
