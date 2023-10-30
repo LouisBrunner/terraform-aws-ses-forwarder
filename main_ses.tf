@@ -60,7 +60,8 @@ resource "aws_ses_receipt_rule" "rule" {
 }
 
 resource "aws_sns_topic" "emails" {
-  name_prefix = var.prefix
+  name_prefix       = var.prefix
+  kms_master_key_id = "alias/aws/sns"
 }
 
 resource "aws_sns_topic_subscription" "emails_and_lambda" {
