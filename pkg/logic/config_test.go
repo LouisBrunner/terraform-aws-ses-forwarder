@@ -73,8 +73,8 @@ func TestLoadConfig(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "fails (empty)",
-			config:  `{"emails": {".*@example.com":["123"]}}`,
+			name:    "fails (invalid json 2)",
+			config:  `{"emails": {".*@example.com":["123"]},}`,
 			wantErr: true,
 		},
 		{

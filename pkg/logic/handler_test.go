@@ -66,7 +66,7 @@ func TestHandler_Fails_Parsing(t *testing.T) {
 }
 
 const eventValid = `{
-  "content":"123",
+  "content":"MTIz",
   "receipt":{"spamVerdict":{"status":"PASS"},"virusVerdict":{"status":"PASS"},"recipients":["hello@moto.com"]},
   "mail":{"headers":[{"name":"To","value":"hello@moto.com"}]}
 }`
