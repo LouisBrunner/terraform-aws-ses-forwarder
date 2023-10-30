@@ -11,6 +11,18 @@ resource "aws_ses_domain_identity" "identity" {
   domain = each.key
 }
 
+locals {
+  destinaries = toset(flatten([for domain, config in var.emails :
+    [for email, aliases in config : aliases]
+  ]))
+}
+
+resource "aws_ses_email_identity" "destinaries" {
+  for_each = { for destinaries in local.destinaries : destinaries => destinaries }
+
+  email = each.key
+}
+
 resource "aws_ses_domain_identity_verification" "verification" {
   for_each = { for domain in local.domains : domain => domain }
 

@@ -97,9 +97,8 @@ data "aws_iam_policy_document" "raw_email" {
       "ses:SendRawEmail",
     ]
 
-    resources = [
-      for domain in local.domains :
-      aws_ses_domain_identity.identity[domain].arn
+    resources = [for destinary in local.destinaries :
+      aws_ses_email_identity.destinaries[destinary].arn
     ]
   }
 }

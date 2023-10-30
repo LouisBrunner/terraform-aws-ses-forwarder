@@ -13,7 +13,7 @@ resource "aws_route53_record" "mx" {
   name    = local.mail_from_domain[each.key]
   type    = "MX"
   ttl     = "600"
-  records = ["10 inbound-smtp.${data.aws_region.current.name}.amazonses.com"]
+  records = ["10 inbound-smtp.${data.aws_region.current.name}.amazonaws.com"]
 }
 
 resource "aws_route53_record" "spf" {

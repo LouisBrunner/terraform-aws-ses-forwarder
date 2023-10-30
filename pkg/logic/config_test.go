@@ -62,10 +62,8 @@ func TestLoadConfig(t *testing.T) {
 		wantErr     bool
 	}{
 		{
-			name: "works",
-			config: `{
-	"emails": {".*@example.com":["123"]}
-}`,
+			name:        "works",
+			config:      `{"emails": {".*@example.com":["123"]}}`,
 			mapInput:    "abc@example.com",
 			mapExpected: "123",
 		},
@@ -75,24 +73,18 @@ func TestLoadConfig(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "fails (empty)",
-			config: `{
-  "emails": {".*@example.com":["123"]},
-}`,
+			name:    "fails (empty)",
+			config:  `{"emails": {".*@example.com":["123"]}}`,
 			wantErr: true,
 		},
 		{
-			name: "fails (empty)",
-			config: `{
-  "emails": {}
-}`,
+			name:    "fails (empty)",
+			config:  `{"emails": {}}`,
 			wantErr: true,
 		},
 		{
-			name: "fails (invalid regex)",
-			config: `{
-  "emails": {"[":["123"]}
-}`,
+			name:    "fails (invalid regex)",
+			config:  `{"emails": {"[":["123"]}}`,
 			wantErr: true,
 		},
 	} {

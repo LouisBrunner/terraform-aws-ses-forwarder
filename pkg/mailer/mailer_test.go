@@ -16,8 +16,36 @@ func TestParseEvent(t *testing.T) {
 		{
 			name: "works",
 			content: `{
-  "content":"123",
+  "content":"MTIz",
   "receipt":{"spamVerdict":{"status":"PASS"},"virusVerdict":{"status":"PASS"},"recipients":["hello@moto.com"]},
+  "mail":{"headers":[{"name":"To","value":"hello@moto.com"}]}
+}`,
+			expected: &Event{
+				To: []string{
+					"hello@moto.com",
+				},
+				email: []byte("123"),
+			},
+		},
+		{
+			name: "works (disabled)",
+			content: `{
+  "content":"MTIz",
+  "receipt":{"spamVerdict":{"status":"DISABLED"},"virusVerdict":{"status":"PASS"},"recipients":["hello@moto.com"]},
+  "mail":{"headers":[{"name":"To","value":"hello@moto.com"}]}
+}`,
+			expected: &Event{
+				To: []string{
+					"hello@moto.com",
+				},
+				email: []byte("123"),
+			},
+		},
+		{
+			name: "works (both disabled)",
+			content: `{
+  "content":"MTIz",
+  "receipt":{"spamVerdict":{"status":"DISABLED"},"virusVerdict":{"status":"DISABLED"},"recipients":["hello@moto.com"]},
   "mail":{"headers":[{"name":"To","value":"hello@moto.com"}]}
 }`,
 			expected: &Event{
@@ -30,7 +58,7 @@ func TestParseEvent(t *testing.T) {
 		{
 			name: "fails (invalid json)",
 			content: `{
-  "content":"123",
+  "content":"MTIz",
   "receipt":{"spamVerdict":{"status":"PASS"},"virusVerdict":{"status":"PASS"},"recipients":["hello@moto.com"}]},
   "mail":{"headers":[{"name":"To","value":"hello@moto.com"}]},
 }`,
@@ -47,7 +75,7 @@ func TestParseEvent(t *testing.T) {
 		{
 			name: "fails (no to)",
 			content: `{
-  "content":"123",
+  "content":"MTIz",
   "receipt":{"spamVerdict":{"status":"PASS"},"virusVerdict":{"status":"PASS"}},
   "mail":{"headers":[{"name":"From","value":"hello@moto.com"}]}
 }`,
@@ -56,7 +84,7 @@ func TestParseEvent(t *testing.T) {
 		{
 			name: "fails (spam)",
 			content: `{
-  "content":"123",
+  "content":"MTIz",
   "receipt":{"spamVerdict":{"status":"FAIL"},"virusVerdict":{"status":"PASS"},"recipients":["hello@moto.com"]},
   "mail":{"headers":[{"name":"To","value":"hello@moto.com"}]}
 }`,
@@ -65,7 +93,7 @@ func TestParseEvent(t *testing.T) {
 		{
 			name: "fails (virus)",
 			content: `{
-  "content":"123",
+  "content":"MTIz",
   "receipt":{"spamVerdict":{"status":"PASS"},"virusVerdict":{"status":"FAIL"},"recipients":["hello@moto.com"]},
   "mail":{"headers":[{"name":"To","value":"hello@moto.com"}]}
 }`,
