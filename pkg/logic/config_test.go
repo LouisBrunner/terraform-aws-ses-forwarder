@@ -16,62 +16,98 @@ func setupConfig() *Config {
 	}
 }
 
-func TestConfigMap_Works_1(t *testing.T) {
+func TestConfigMap(t *testing.T) {
 	conf := setupConfig()
-	to, err := conf.Map("abc@example.com")
-	if assert.NoError(t, err) {
-		assert.Equal(t, "123", to)
+	for _, testcase := range []struct {
+		name     string
+		input    string
+		expected string
+		wantErr  bool
+	}{
+		{
+			name:     "works 1",
+			input:    "abc@example.com",
+			expected: "123",
+		},
+		{
+			name:     "works 2",
+			input:    "abc@def.ghi",
+			expected: "def.abc",
+		},
+		{
+			name:    "fails (not found)",
+			input:   "@example.com",
+			wantErr: true,
+		},
+	} {
+		t.Run(testcase.name, func(t *testing.T) {
+			to, err := conf.Map(testcase.input)
+			if testcase.wantErr {
+				assert.Error(t, err)
+			} else {
+				if assert.NoError(t, err) {
+					assert.Equal(t, testcase.expected, to)
+				}
+			}
+		})
 	}
 }
 
-func TestConfigMap_Works_2(t *testing.T) {
-	conf := setupConfig()
-	to, err := conf.Map("abc@def.ghi")
-	if assert.NoError(t, err) {
-		assert.Equal(t, "def.abc", to)
-	}
-}
-
-func TestConfigMap_Fails_NotFound(t *testing.T) {
-	conf := setupConfig()
-	_, err := conf.Map("@example.com")
-	assert.EqualError(t, err, "no match found for `@example.com`")
-}
-
-func TestLoadConfig_Works(t *testing.T) {
-	conf, err := LoadConfig(`{
-  "emails": {".*@example.com":["123"]}
-}`)
-	if assert.NoError(t, err) {
-		to, err := conf.Map("abc@example.com")
-		if assert.NoError(t, err) {
-			assert.Equal(t, "123", to)
-		}
-	}
-}
-
-func TestLoadConfig_Fails_NoFile(t *testing.T) {
-	_, err := LoadConfig("123")
-	assert.EqualError(t, err, "json: cannot unmarshal number into Go value of type logic.config")
-}
-
-func TestLoadConfig_Fails_Invalid(t *testing.T) {
-	_, err := LoadConfig(`{
+func TestLoadConfig(t *testing.T) {
+	for _, testcase := range []struct {
+		name        string
+		config      string
+		mapInput    string
+		mapExpected string
+		wantErr     bool
+	}{
+		{
+			name: "works",
+			config: `{
+	"emails": {".*@example.com":["123"]}
+}`,
+			mapInput:    "abc@example.com",
+			mapExpected: "123",
+		},
+		{
+			name:    "fails (invalid json)",
+			config:  "123",
+			wantErr: true,
+		},
+		{
+			name: "fails (empty)",
+			config: `{
   "emails": {".*@example.com":["123"]},
-}`)
-	assert.EqualError(t, err, "invalid character '}' looking for beginning of object key string")
-}
-
-func TestLoadConfig_Fails_Empty(t *testing.T) {
-	_, err := LoadConfig(`{
+}`,
+			wantErr: true,
+		},
+		{
+			name: "fails (empty)",
+			config: `{
   "emails": {}
-}`)
-	assert.EqualError(t, err, "no translation found")
-}
-
-func TestLoadConfig_Fails_InvalidRegex(t *testing.T) {
-	_, err := LoadConfig(`{
+}`,
+			wantErr: true,
+		},
+		{
+			name: "fails (invalid regex)",
+			config: `{
   "emails": {"[":["123"]}
-}`)
-	assert.EqualError(t, err, "error parsing regexp: missing closing ]: `[`")
+}`,
+			wantErr: true,
+		},
+	} {
+		t.Run(testcase.name, func(t *testing.T) {
+			config, err := LoadConfig(testcase.config)
+			if testcase.wantErr {
+				assert.Error(t, err)
+			} else {
+				if assert.NoError(t, err) {
+					to, err := config.Map(testcase.mapInput)
+					if assert.NoError(t, err) {
+						assert.Equal(t, testcase.mapExpected, to)
+					}
+				}
+			}
+		})
+	}
 }

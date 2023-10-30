@@ -67,7 +67,7 @@ func TestHandler_Fails_Parsing(t *testing.T) {
 
 const eventValid = `{
   "content":"123",
-  "receipt":{"spamVerdict":{"status":"PASS"},"virusVerdict":{"status":"PASS"}},
+  "receipt":{"spamVerdict":{"status":"PASS"},"virusVerdict":{"status":"PASS"},"recipients":["hello@moto.com"]},
   "mail":{"headers":[{"name":"To","value":"hello@moto.com"}]}
 }`
 
@@ -91,7 +91,7 @@ func TestHandler_Fails_Mapping(t *testing.T) {
 			},
 		},
 	)
-	expectedError := "456: no match found for `hello@moto.com`"
+	expectedError := "456: no destination"
 	assert.EqualError(t, err, expectedError)
 
 	content, err := collect()

@@ -51,12 +51,21 @@ func handleRecord(session client.ConfigProvider, conf *Config, record *events.SN
 		return err
 	}
 
-	log.Printf("%s: map destination (to: %s)\n", record.SNS.MessageID, email.To)
-	to, err := conf.Map(email.To)
-	if err != nil {
-		return err
+	newTos := make([]string, 0, len(email.To))
+	for _, to := range email.To {
+		log.Printf("%s: map destination (to: %s)\n", record.SNS.MessageID, to)
+		newTo, err := conf.Map(to)
+		if err != nil {
+			log.Printf("%s: error mapping %s: %v\n", record.SNS.MessageID, to, err)
+			continue
+		}
+		newTos = append(newTos, newTo)
 	}
 
-	log.Printf("%s: forward to %s\n", record.SNS.MessageID, to)
-	return email.Forward(session, to)
+	if len(newTos) < 1 {
+		return fmt.Errorf("no destination")
+	}
+
+	log.Printf("%s: forward to %s\n", record.SNS.MessageID, newTos)
+	return email.Forward(session, newTos)
 }
