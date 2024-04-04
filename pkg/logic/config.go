@@ -16,8 +16,13 @@ type Config struct {
 	translations []configEntry
 }
 
+type configEmail struct {
+	Regex     string   `json:"regex"`
+	ForwardTo []string `json:"forward_to"`
+}
+
 type config struct {
-	Emails map[string][]string `json:"emails"`
+	Emails []configEmail `json:"emails"`
 }
 
 // LoadConfig reads the configuration of the app from the current directory
@@ -35,13 +40,13 @@ func LoadConfig(content string) (*Config, error) {
 	conf := Config{
 		translations: make([]configEntry, 0, len(raw.Emails)),
 	}
-	for emailRegex, aliases := range raw.Emails {
-		regex, err := regexp.Compile(emailRegex)
+	for _, entry := range raw.Emails {
+		regex, err := regexp.Compile(entry.Regex)
 		if err != nil {
 			return nil, err
 		}
 
-		for _, alias := range aliases {
+		for _, alias := range entry.ForwardTo {
 			conf.translations = append(conf.translations, configEntry{
 				regex:   regex,
 				replace: alias,

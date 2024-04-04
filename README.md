@@ -13,13 +13,13 @@ resource "aws_route53_zone" "domain" {
 
 module "email" {
   source  = "LouisBrunner/ses-forwarder/aws"
-  version = "1.0.0"
+  version = "2.0.0"
   prefix  = "forwarder"
 
   emails = {
-    "example.com" = {
-      "^camille$" = ["camille@gmail.com"]
-    }
+    "example.com" = [
+      {regex = "^camille$", forward_to = ["camille@gmail.com"]}
+    ]
   }
 }
 ```
@@ -29,5 +29,5 @@ module "email" {
 You can also use the Docker image directly:
 
 ```bash
-docker pull ghcr.io/louisbrunner/terraform-aws-ses-forwarder:v1.0.0
+docker pull ghcr.io/louisbrunner/terraform-aws-ses-forwarder:v2.0.0
 ```

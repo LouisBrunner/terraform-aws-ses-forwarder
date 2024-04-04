@@ -73,18 +73,16 @@ module "lambda" {
 
   environment_variables = {
     CONFIG = jsonencode({
-      "emails" = {
-        for entry in flatten([
-          for domain, config in var.emails :
-          [
-            for email, aliases in config :
-            {
-              email   = "${trimsuffix(email, "$")}@${domain}$",
-              aliases = aliases,
-            }
-          ]
-        ]) : entry.email => entry.aliases
-      },
+      "emails" = flatten([
+        for domain, config in var.emails :
+        [
+          for entry in config :
+          {
+            regex      = "${trimsuffix(entry.regex, "$")}@${domain}$",
+            forward_to = entry.forward_to,
+          }
+        ]
+      ]),
     })
   }
 

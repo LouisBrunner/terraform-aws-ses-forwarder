@@ -63,7 +63,7 @@ func TestLoadConfig(t *testing.T) {
 	}{
 		{
 			name:        "works",
-			config:      `{"emails": {".*@example.com":["123"]}}`,
+			config:      `{"emails": [{"regex":".*@example.com","forward_to":["123"]}]}`,
 			mapInput:    "abc@example.com",
 			mapExpected: "123",
 		},
@@ -74,17 +74,17 @@ func TestLoadConfig(t *testing.T) {
 		},
 		{
 			name:    "fails (invalid json 2)",
-			config:  `{"emails": {".*@example.com":["123"]},}`,
+			config:  `{"emails": [{"regex":".*@example.com", "forward_to":["123"]},]}`,
 			wantErr: true,
 		},
 		{
 			name:    "fails (empty)",
-			config:  `{"emails": {}}`,
+			config:  `{"emails": []}`,
 			wantErr: true,
 		},
 		{
 			name:    "fails (invalid regex)",
-			config:  `{"emails": {"[":["123"]}}`,
+			config:  `{"emails": [{"regex":"[", "forward_to":["123"]}]}`,
 			wantErr: true,
 		},
 	} {

@@ -13,7 +13,7 @@ resource "aws_ses_domain_identity" "identity" {
 
 locals {
   destinaries = toset(flatten([for domain, config in var.emails :
-    [for email, aliases in config : aliases]
+    [for entry in config : entry.forward_to]
   ]))
 }
 
@@ -60,8 +60,29 @@ resource "aws_ses_receipt_rule" "rule" {
 }
 
 resource "aws_sns_topic" "emails" {
-  name_prefix       = var.prefix
-  kms_master_key_id = "alias/aws/sns"
+  name_prefix = var.prefix
+  policy      = data.aws_iam_policy_document.sns_access.json
+}
+
+data "aws_iam_policy_document" "sns_access" {
+  policy_id = "__default_policy_ID"
+
+  statement {
+    sid = "__default_statement_ID"
+
+    actions = [
+      "sns:Publish",
+    ]
+
+    resources = [
+      "*",
+    ]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ses.amazonaws.com"]
+    }
+  }
 }
 
 resource "aws_sns_topic_subscription" "emails_and_lambda" {

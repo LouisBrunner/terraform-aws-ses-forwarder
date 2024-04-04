@@ -13,8 +13,11 @@ variable "mail_from" {
 }
 
 variable "emails" {
-  description = "The mapping from email accounts to their respective aliases, e.g. {\"example.com\" = {\"^info$\" = [\"camille@gmail.com\"]}}"
-  type        = map(map(list(string)))
+  description = "The mapping from email accounts to their prioritized respective aliases, e.g. {\"example.com\" = [{\"regex\" = \"^info$\", \"forward_to\" = [\"camille@gmail.com\"]}}"
+  type = map(list(object({
+    regex      = string
+    forward_to = list(string)
+  })))
 }
 
 variable "scan_enabled" {
