@@ -6,7 +6,7 @@ import (
 
 	"github.com/LouisBrunner/go-iowrap"
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/aws/session" //lint:ignore SA1019 pending migration to aws-sdk-go-v2
 	"github.com/stretchr/testify/assert"
 )
 

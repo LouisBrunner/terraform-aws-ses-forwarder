@@ -10,18 +10,13 @@ mod-tidy:
 .PHONY: mod-tidy
 
 generate: download
-	# When not running tests or vetting, we don't want to generate mocks (vektra/mockery) as it's quite slow
-	go generate -run='//go:generate go run github.com/([^v]|v[^e]|ve[^k]|vek[^t])' -x ./...
-ifeq (, $(findstring test,$(MAKECMDGOALS))$(findstring vet,$(MAKECMDGOALS)))
-else
 	go generate -x ./...
-endif
 .PHONY: generate
 
 vet: download generate
 	gofmt -d -e -s .
 	go vet ./...
-	go run honnef.co/go/tools/cmd/staticcheck ./...
+	go tool honnef.co/go/tools/cmd/staticcheck ./...
 .PHONY: vet
 
 test: download generate
@@ -30,13 +25,14 @@ test: download generate
 
 TEST_OUT_FILE ?= report.xml
 COV_OUT_FILE ?= coverage.out
+COB_OUT_FILE ?= coverage.xml
 
 test-ci: download generate
-	go run gotest.tools/gotestsum --junitfile $(TEST_OUT_FILE) -- -coverprofile=$(COV_OUT_FILE) -v ./...
+	go tool gotest.tools/gotestsum --junitfile $(TEST_OUT_FILE) -- -coverprofile=$(COV_OUT_FILE) -v ./...
 .PHONY: test-ci
 
 coverage-ci:
-	go run github.com/mattn/goveralls -coverprofile=$(COV_OUT_FILE) -service=github
+	go tool github.com/t-yuki/gocover-cobertura < $(COV_OUT_FILE) > $(COB_OUT_FILE)
 .PHONY: coverage-ci
 
 TARGET ?= missing

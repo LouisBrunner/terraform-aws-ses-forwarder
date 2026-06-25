@@ -11,8 +11,8 @@ import (
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go/aws/client"
-	"github.com/aws/aws-sdk-go/service/ses"
+	"github.com/aws/aws-sdk-go/aws/client"  //lint:ignore SA1019 pending migration to aws-sdk-go-v2
+	"github.com/aws/aws-sdk-go/service/ses" //lint:ignore SA1019 pending migration to aws-sdk-go-v2
 	"golang.org/x/exp/slices"
 )
 

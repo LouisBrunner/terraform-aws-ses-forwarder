@@ -9,7 +9,7 @@ import (
 	"github.com/LouisBrunner/aws-ses-forwarder/pkg/mailer"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go/aws/client"
+	"github.com/aws/aws-sdk-go/aws/client" //lint:ignore SA1019 pending migration to aws-sdk-go-v2
 )
 
 // Handler is the Lambda function handler
