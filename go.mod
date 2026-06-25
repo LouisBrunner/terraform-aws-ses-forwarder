@@ -12,7 +12,7 @@ require (
 	github.com/LouisBrunner/go-iowrap v0.0.0-20180818160025-26fc330ff0b4
 	github.com/aws/aws-lambda-go v1.54.0
 	github.com/aws/aws-sdk-go v1.55.8
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.11.1
 	golang.org/x/exp v0.0.0-20260611194520-c48552f49976
 )
 
