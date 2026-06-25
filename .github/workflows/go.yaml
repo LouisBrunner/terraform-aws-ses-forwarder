@@ -11,9 +11,7 @@ concurrency:
 
 jobs:
   vet:
-    uses: LouisBrunner/.github/.github/workflows/lint-project.yml@main
-    with:
-      type: go
+    uses: LouisBrunner/.github/.github/workflows/lint-go.yml@main
 
   test:
     name: Test
