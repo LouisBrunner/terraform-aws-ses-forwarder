@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: Build
 
 on:
@@ -9,16 +10,26 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   vet:
     uses: LouisBrunner/.github/.github/workflows/lint-go.yml@main
+    permissions:
+      contents: read
 
   test:
     name: Test
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
     steps:
       - name: Checkout the repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
 
       - name: Set up Go
         uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
@@ -40,10 +51,13 @@ jobs:
   metadata:
     runs-on: ubuntu-latest
     name: Get metadata
+    permissions:
+      contents: read
     outputs:
       image_tags: ${{ steps.parse-tag.outputs.tag }}
     steps:
-      - uses: aica-technology/.github/.github/actions/docker-tag-from-git@v1.1.0
+      - uses: aica-technology/.github/.github/actions/docker-tag-from-git@83d20715262fa13837974be85da35ff1d569730d
+        # v1.1.0
         id: parse-tag
 
   build:
@@ -51,6 +65,9 @@ jobs:
     needs: [metadata, vet, test]
     if: ${{ github.ref_name == 'main' || startsWith(github.ref, 'refs/tags/v') }}
     uses: LouisBrunner/.github/.github/workflows/ko.yml@main
+    permissions:
+      contents: read
+      packages: write
     secrets:
       registry-password: ${{ secrets.GITHUB_TOKEN }}
     with:

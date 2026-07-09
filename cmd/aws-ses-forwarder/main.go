@@ -1,26 +1,31 @@
 package main
 
 import (
+	"context"
 	"os"
 
 	"github.com/LouisBrunner/aws-ses-forwarder/pkg/logic"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go/aws/session" //lint:ignore SA1019 pending migration to aws-sdk-go-v2
+	"github.com/aws/aws-sdk-go-v2/config"
 )
 
 func main() {
-	sess := session.Must(session.NewSession())
+	ctx := context.Background()
+	cfg, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		panic("could not load AWS config: " + err.Error())
+	}
 	rawConfig := os.Getenv("CONFIG")
 	if rawConfig == "" {
 		panic("CONFIG environment variable is required")
 	}
-	config, err := logic.LoadConfig(rawConfig)
+	conf, err := logic.LoadConfig(rawConfig)
 	if err != nil {
 		panic("could not load config: " + err.Error())
 	}
-	lambda.Start(func(event events.SNSEvent) error {
-		return logic.Handler(sess, config, event)
+	lambda.Start(func(ctx context.Context, event events.SNSEvent) error {
+		return logic.Handler(ctx, cfg, conf, event)
 	})
 }

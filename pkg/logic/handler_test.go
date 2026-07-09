@@ -1,17 +1,18 @@
 package logic
 
 import (
+	"context"
 	"log"
 	"testing"
 
 	"github.com/LouisBrunner/go-iowrap"
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go/aws/session" //lint:ignore SA1019 pending migration to aws-sdk-go-v2
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/stretchr/testify/assert"
 )
 
-func setupSession() *session.Session {
-	return session.Must(session.NewSession())
+func setupAWSConfig() aws.Config {
+	return aws.Config{}
 }
 
 func TestHandler_Fails_NoBody(t *testing.T) {
@@ -22,7 +23,7 @@ func TestHandler_Fails_NoBody(t *testing.T) {
 	log.SetOutput(w)
 
 	err = Handler(
-		setupSession(), setupConfig(),
+		context.Background(), setupAWSConfig(), setupConfig(),
 		events.SNSEvent{},
 	)
 	expectedError := "no record"
@@ -43,7 +44,7 @@ func TestHandler_Fails_Parsing(t *testing.T) {
 	log.SetOutput(w)
 
 	err = Handler(
-		setupSession(), setupConfig(),
+		context.Background(), setupAWSConfig(), setupConfig(),
 		events.SNSEvent{
 			Records: []events.SNSEventRecord{
 				{
@@ -79,7 +80,7 @@ func TestHandler_Fails_Mapping(t *testing.T) {
 	log.SetOutput(w)
 
 	err = Handler(
-		setupSession(), setupConfig(),
+		context.Background(), setupAWSConfig(), setupConfig(),
 		events.SNSEvent{
 			Records: []events.SNSEventRecord{
 				{

@@ -59,9 +59,15 @@ resource "aws_ses_receipt_rule" "rule" {
   }
 }
 
+#trivy:ignore:AWS-0136:AWS-managed key encryption is sufficient here, no need for a customer-managed KMS key
 resource "aws_sns_topic" "emails" {
-  name_prefix = var.prefix
-  policy      = data.aws_iam_policy_document.sns_access.json
+  name_prefix       = var.prefix
+  kms_master_key_id = "alias/aws/sns"
+}
+
+resource "aws_sns_topic_policy" "emails" {
+  arn    = aws_sns_topic.emails.arn
+  policy = data.aws_iam_policy_document.sns_access.json
 }
 
 data "aws_iam_policy_document" "sns_access" {
@@ -75,12 +81,18 @@ data "aws_iam_policy_document" "sns_access" {
     ]
 
     resources = [
-      "*",
+      aws_sns_topic.emails.arn,
     ]
 
     principals {
       type        = "Service"
       identifiers = ["ses.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceAccount"
+      values   = [data.aws_caller_identity.current.account_id]
     }
   }
 }

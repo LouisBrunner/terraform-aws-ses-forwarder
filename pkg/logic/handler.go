@@ -1,6 +1,7 @@
 package logic
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -9,12 +10,12 @@ import (
 	"github.com/LouisBrunner/aws-ses-forwarder/pkg/mailer"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go/aws/client" //lint:ignore SA1019 pending migration to aws-sdk-go-v2
+	"github.com/aws/aws-sdk-go-v2/aws"
 )
 
 // Handler is the Lambda function handler
 // It uses Amazon API Gateway request/responses provided by the aws-lambda-go/events package,
-func Handler(session client.ConfigProvider, conf *Config, event events.SNSEvent) (ferr error) {
+func Handler(ctx context.Context, cfg aws.Config, conf *Config, event events.SNSEvent) (ferr error) {
 	log.Printf("start processing\n")
 	defer func() {
 		if ferr != nil {
@@ -30,7 +31,7 @@ func Handler(session client.ConfigProvider, conf *Config, event events.SNSEvent)
 	errorsList := []string{}
 
 	for _, record := range event.Records {
-		err := handleRecord(session, conf, &record)
+		err := handleRecord(ctx, cfg, conf, &record)
 		if err != nil {
 			errorsList = append(errorsList, fmt.Sprintf("%s: %v", record.SNS.MessageID, err))
 		}
@@ -42,7 +43,7 @@ func Handler(session client.ConfigProvider, conf *Config, event events.SNSEvent)
 	return nil
 }
 
-func handleRecord(session client.ConfigProvider, conf *Config, record *events.SNSEventRecord) error {
+func handleRecord(ctx context.Context, cfg aws.Config, conf *Config, record *events.SNSEventRecord) error {
 	log.Printf("new record: %+v\n", record)
 
 	log.Printf("%s: parse body\n", record.SNS.MessageID)
@@ -67,5 +68,5 @@ func handleRecord(session client.ConfigProvider, conf *Config, record *events.SN
 	}
 
 	log.Printf("%s: forward to %s\n", record.SNS.MessageID, newTos)
-	return email.Forward(session, newTos)
+	return email.Forward(ctx, cfg, newTos)
 }

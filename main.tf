@@ -1,5 +1,15 @@
+#trivy:ignore:AWS-0033:AWS-managed key encryption is sufficient here, no need for a customer-managed KMS key yet
 resource "aws_ecr_repository" "repository" {
-  name = "${var.prefix}-repository"
+  name                 = "${var.prefix}-repository"
+  image_tag_mutability = "IMMUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  encryption_configuration {
+    encryption_type = "KMS"
+  }
 }
 
 resource "aws_ecr_lifecycle_policy" "keep_few" {
@@ -48,6 +58,7 @@ resource "null_resource" "docker_pull_push" {
 }
 
 module "lambda" {
+  #checkov:skip=CKV_TF_1:Registry module, not git-sourced, pinned via version instead
   source  = "terraform-aws-modules/lambda/aws"
   version = "8.8.0"
 
@@ -60,6 +71,7 @@ module "lambda" {
   image_uri     = local.lambda_dest
   package_type  = "Image"
   architectures = ["x86_64"]
+  tracing_mode  = "Active"
 
   allowed_triggers = {
     "AllowExecutionBySNS" = {

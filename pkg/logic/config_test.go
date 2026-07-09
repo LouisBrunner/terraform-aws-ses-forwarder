@@ -44,10 +44,8 @@ func TestConfigMap(t *testing.T) {
 			to, err := conf.Map(testcase.input)
 			if testcase.wantErr {
 				assert.Error(t, err)
-			} else {
-				if assert.NoError(t, err) {
-					assert.Equal(t, testcase.expected, to)
-				}
+			} else if assert.NoError(t, err) {
+				assert.Equal(t, testcase.expected, to)
 			}
 		})
 	}
@@ -92,12 +90,10 @@ func TestLoadConfig(t *testing.T) {
 			config, err := LoadConfig(testcase.config)
 			if testcase.wantErr {
 				assert.Error(t, err)
-			} else {
+			} else if assert.NoError(t, err) {
+				to, err := config.Map(testcase.mapInput)
 				if assert.NoError(t, err) {
-					to, err := config.Map(testcase.mapInput)
-					if assert.NoError(t, err) {
-						assert.Equal(t, testcase.mapExpected, to)
-					}
+					assert.Equal(t, testcase.mapExpected, to)
 				}
 			}
 		})

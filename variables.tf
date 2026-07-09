@@ -1,14 +1,17 @@
 variable "prefix" {
   description = "The prefix name to use for all resources"
+  type        = string
 }
 
 variable "lambda_version" {
   description = "The version of the lambda module to use (default: latest)"
+  type        = string
   default     = "v1.0.0"
 }
 
 variable "mail_from" {
   description = "The subdomain to use as MAIL FROM"
+  type        = string
   default     = ""
 }
 

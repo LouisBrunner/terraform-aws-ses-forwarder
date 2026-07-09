@@ -2,18 +2,20 @@ package mailer
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go/aws/client"  //lint:ignore SA1019 pending migration to aws-sdk-go-v2
-	"github.com/aws/aws-sdk-go/service/ses" //lint:ignore SA1019 pending migration to aws-sdk-go-v2
-	"golang.org/x/exp/slices"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ses"
+	"github.com/aws/aws-sdk-go-v2/service/ses/types"
 )
 
 const (
@@ -51,7 +53,7 @@ func ParseEvent(rawJSON []byte) (*Event, error) {
 	}
 
 	log.Printf("spam = %s, virus = %s\n", rawEvent.Receipt.SpamVerdict.Status, rawEvent.Receipt.VirusVerdict.Status)
-	if !(slices.Contains(allowedVerdicts, rawEvent.Receipt.SpamVerdict.Status) && slices.Contains(allowedVerdicts, rawEvent.Receipt.VirusVerdict.Status)) {
+	if !slices.Contains(allowedVerdicts, rawEvent.Receipt.SpamVerdict.Status) || !slices.Contains(allowedVerdicts, rawEvent.Receipt.VirusVerdict.Status) {
 		return nil, errors.New("don't forward spam/virus")
 	}
 	if len(rawEvent.Receipt.Recipients) < 1 {
@@ -60,16 +62,16 @@ func ParseEvent(rawJSON []byte) (*Event, error) {
 
 	event := Event{
 		To:    rawEvent.Receipt.Recipients,
-		email: []byte(content),
+		email: content,
 	}
 	return &event, nil
 }
 
 // Forward will try to forward the SES event to the given recipient
-func (e *Event) Forward(session client.ConfigProvider, to []string) error {
-	sesClient := ses.New(session)
-	_, err := sesClient.SendRawEmail(&ses.SendRawEmailInput{
-		RawMessage: &ses.RawMessage{Data: generateMail(e.email, e.To, to)},
+func (e *Event) Forward(ctx context.Context, cfg aws.Config, to []string) error {
+	sesClient := ses.NewFromConfig(cfg)
+	_, err := sesClient.SendRawEmail(ctx, &ses.SendRawEmailInput{
+		RawMessage: &types.RawMessage{Data: generateMail(e.email, e.To, to)},
 	})
 	return err
 }
@@ -86,6 +88,6 @@ func generateMail(raw []byte, originalTo, to []string) []byte {
 			strings.Join(originalTo, ", "),
 		),
 	))
-	raw = bytes.Replace(raw, []byte(buggyRegexBS), []byte{}, -1)
+	raw = bytes.ReplaceAll(raw, []byte(buggyRegexBS), []byte{})
 	return raw
 }
