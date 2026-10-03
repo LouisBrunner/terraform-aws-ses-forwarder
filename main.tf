@@ -60,7 +60,7 @@ resource "null_resource" "docker_pull_push" {
 module "lambda" {
   #checkov:skip=CKV_TF_1:Registry module, not git-sourced, pinned via version instead
   source  = "terraform-aws-modules/lambda/aws"
-  version = "8.8.0"
+  version = "8.9.0"
 
   function_name = "${var.prefix}-lambda"
   description   = "Lambda function to forward SES emails"
