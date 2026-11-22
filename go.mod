@@ -1,6 +1,6 @@
 module github.com/LouisBrunner/aws-ses-forwarder
 
-go 1.26.8
+go 1.26.11
 
 tool (
 	github.com/t-yuki/gocover-cobertura
